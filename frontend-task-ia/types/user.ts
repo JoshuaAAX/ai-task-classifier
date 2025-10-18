@@ -27,7 +27,15 @@ export interface RegisterData {
   email: string
   username: string
   password: string
-}export interface SettingsModalProps {
+}
+
+export interface SettingsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+
+export interface AnalyzeResult {
+  requiresAI: boolean
+  text: string
 }

@@ -1,4 +1,4 @@
-import type { User, UpdateUser, LoginData, LoginResponse, RegisterData} from "@/types/user"
+import type { User, UpdateUser, LoginData, LoginResponse, RegisterData, AnalyzeResult } from "@/types/user"
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
@@ -115,4 +115,61 @@ export async function changePassword(old_password: string, new_password: string)
   }
 
   return json
+}
+
+// enviar la tarea para predecir con ia
+export async function analyzeTask(task: string): Promise<AnalyzeResult> {
+  const token = getToken()
+  if (!token) throw new Error("Token no encontrado")
+
+  const res = await fetch(`${API_URL}/predict`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ text: task }),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.detail || "Error analizando tarea")
+  }
+
+  return {
+    requiresAI: data.requiere_ia === "si" || data.requiere_ia === true,
+    text: data.texto || "Resultado recibido del modelo IA",
+  }
+}
+
+
+export async function recommendTools(task: string) {
+  const token = localStorage.getItem("auth_token")
+  if (!token) throw new Error("Token no encontrado")
+
+  const res = await fetch(`${API_URL}/recommend`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ text: task }),
+  })
+
+  const text = await res.text()
+
+  if (!res.ok) {
+    console.error("❌ Error backend:", res.status, text)
+    throw new Error(`Error obteniendo recomendaciones: ${res.status}`)
+  }
+
+  // intentar parsear JSON seguro
+  try {
+    return JSON.parse(text)
+  } catch (err) {
+    console.error("⚠️ Respuesta no es JSON válido:", text)
+    throw new Error("Respuesta inválida del servidor")
+  }
+
 }

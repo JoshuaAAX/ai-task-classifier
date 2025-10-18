@@ -2,11 +2,18 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Brain, LogOut, Settings, User, Send, PanelLeft } from "lucide-react"
+import Cookies from "js-cookie"
+import { SettingsModal } from "@/components/settings-modal"
+import { getCurrentUser, analyzeTask, recommendTools } from "@/lib/api"
+import ReactMarkdown from "react-markdown"
+
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,23 +21,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Brain, LogOut, Settings, User, Send, PanelLeft } from "lucide-react"
-import Cookies from "js-cookie"
-import { SettingsModal } from "@/components/settings-modal"
-import { getCurrentUser } from "@/lib/api"
+
 
 
 export default function DashboardPage() {
   const router = useRouter()
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
   const [task, setTask] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [result, setResult] = useState<{ requiresAI: boolean; explanation: string } | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [userEmail, setUserEmail] = useState<string>("")
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  const [result, setResult] = useState<{ requiresAI: boolean; text: string } | null>(null)
+
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const [userEmail, setUserEmail] = useState<string>("")
+
+
+  const [messages, setMessages] = useState<
+    Array<{ text: string; from: "user" | "ai"; requiresAI?: boolean }>
+  >([])
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   /*
   const [conversations, setConversations] = useState<Array<{ id: string; title: string; date: string }>>([
@@ -52,10 +64,11 @@ export default function DashboardPage() {
   */
 
   useEffect(() => {
+
     const checkAuth = async () => {
       try {
         const user = await getCurrentUser()
-        setUserEmail(user.email) // o setUser(user) si luego manejas más campos
+        setUserEmail(user.email)
       } catch (error) {
         console.error("Error verificando autenticación:", error)
         localStorage.removeItem("auth_token")
@@ -66,35 +79,112 @@ export default function DashboardPage() {
     checkAuth()
   }, [router])
 
+
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+
   const handleAnalyze = async () => {
-    if (!task.trim()) return
+    if (!task.trim() || isAnalyzing) return
 
     setIsAnalyzing(true)
-    setResult(null)
+    const currentTask = task
+    setTask("")
 
-    const token = localStorage.getItem("auth_token")
+    // Mostrar mensaje del usuario
+    setMessages((prev) => [...prev, { text: currentTask, from: "user" }])
 
     try {
-      const response = await fetch(`${API_URL}/predict`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ text: task }),
-      })
+      // Paso 1️⃣ → Clasificar la tarea
+      const data = await analyzeTask(currentTask)
 
-      const data = await response.json()
-      setResult({
-        requiresAI: data.requiere_ia === "sí" || data.requiere_ia === true,
-        explanation: data.explicacion || "Resultado recibido del modelo IA",
-      })
+      // Mostrar si requiere IA
+      setMessages((prev) => [
+        ...prev,
+        { text: data.text, from: "ai", requiresAI: data.requiresAI },
+      ])
+
+      // Paso 2️⃣ → Si requiere IA, pedir recomendaciones
+      if (data.requiresAI) {
+        const rec = await recommendTools(currentTask)
+        console.log(rec)
+
+        const formattedResponse = `
+###  Descripción de la tarea: ${rec.respuesta_formateada?.descripcion_tarea || "Sin descripción"}
+
+###  Herramientas recomendadas:
+${rec.respuesta_formateada?.herramientas_recomendadas
+            ?.map(
+              (h: any, i: number) => `
+${i + 1}. **${h.nombre}**
+   -  Descripción: ${h.descripcion}
+   -  Enlace: [${h.link_verificado}](${h.link_verificado})
+   -  Motivo: ${h.motivo}`
+            )
+            .join("\n\n") || "No se encontraron herramientas."}
+
+---
+
+###  Modelos sugeridos (Hugging Face):
+${rec.huggingface_sugeridos?.length
+            ? rec.huggingface_sugeridos
+              .map(
+                (m: any, i: number) =>
+                  `${i + 1}. [${m.name}](${m.url}) — ${m.description || "Sin descripción"}`
+              )
+              .join("\n")
+            : "Ninguno encontrado."}
+`
+
+        setMessages((prev) => [
+          ...prev,
+          { text: formattedResponse.trim(), from: "ai" },
+        ])
+      }
     } catch (error) {
-      console.error("Error analizando tarea:", error)
+      console.error("Error analizando o recomendando:", error)
+      setMessages((prev) => [
+        ...prev,
+        { text: "Error al procesar la tarea o las recomendaciones.", from: "ai" },
+      ])
     } finally {
       setIsAnalyzing(false)
     }
   }
+
+
+  {/*
+
+  const handleAnalyze = async () => {
+    if (!task.trim()) return
+
+    const currentTask = task
+    setTask("")
+
+    // Agregar mensaje del usuario inmediatamente
+    setMessages((prev) => [...prev, { text: currentTask, from: "user" }])
+
+    try {
+      const data = await analyzeTask(currentTask)
+      console.log(data)
+
+      // Agregar mensaje de IA como otro mensaje normal
+      setMessages((prev) => [
+        ...prev,
+        { text: data.text, from: "ai", requiresAI: data.requiresAI },
+      ])
+    } catch (error) {
+      console.error("Error analizando tarea:", error)
+      setMessages((prev) => [
+        ...prev,
+        { text: "Error al procesar la tarea.", from: "ai" },
+      ])
+    }
+  }
+
+  */}
 
   const handleLogout = () => {
     Cookies.remove("auth_token")
@@ -208,55 +298,63 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
+
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-6 py-12">
-            {!result ? (
+          <div className="max-w-3xl mx-auto px-8 py-12 space-y-6">
+            {messages.length === 0 && (
               <div className="text-center space-y-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
+                <p className="text-muted-foreground">Ingresa tu tarea para comenzar</p>
               </div>
-            ) : (
-              <div className="space-y-6">
-                {/* User Message */}
-                <div className="flex gap-4">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className="bg-muted text-foreground text-sm">U</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-foreground">{task}</p>
-                  </div>
-                </div>
+            )}
 
-                {/* AI Response */}
-                <div className="flex gap-4">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex gap-4 items-end ${msg.from === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.from === "ai" && (
                   <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                       <Brain className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 space-y-4">
-                    <div
-                      className={`inline-block px-4 py-2 rounded-lg ${result.requiresAI ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
-                        }`}
-                    >
-                      <p className="font-semibold">
-                        {result.requiresAI ? "✓ Requiere Inteligencia Artificial" : "✗ No requiere IA"}
-                      </p>
+                )}
+
+                <div
+                  className={`inline-block px-4 py-3 rounded-2xl break-words
+  ${msg.from === "user"
+                      ? "bg-blue-400 text-white max-w-md"
+                      : msg.requiresAI
+                        ? "bg-green-100 text-green-800 max-w-4xl"
+                        : "bg-red-100 text-red-800 max-w-3xl"
+                    }`}
+                >
+                  {msg.from === "ai" && msg.requiresAI !== undefined ? (
+                    <p className="text-sm font-semibold">
+                      {msg.requiresAI ? "Requiere IA" : "No requiere IA"}
+                    </p>
+                  ) : (
+                    <div className="prose prose-sm max-w-none text-sm">
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
                     </div>
-                    <p className="text-foreground leading-relaxed">{result.explanation}</p>
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        Basado en análisis NLP y clasificación supervisada usando modelos BERT, Random Forest y SVM.
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
+
+                {msg.from === "user" && (
+                  <Avatar className="w-8 h-8 flex-shrink-0">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">UV</AvatarFallback>
+                  </Avatar>
+                )}
               </div>
-            )}
+            ))}
+            <div ref={messagesEndRef}></div>
           </div>
         </div>
+
 
         {/* Input Area */}
         <div className="bg-background">

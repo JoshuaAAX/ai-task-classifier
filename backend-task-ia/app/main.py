@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from . import models, database, auth, ml
+from . import models, database, auth, ml, recommend
 from sqlalchemy.orm import Session
 from app.schemas import PredictRequest  
 
@@ -18,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(recommend.router) 
 
 
 @app.post("/predict")

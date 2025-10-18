@@ -42,7 +42,7 @@ export default function RegisterPage() {
     }
 
     // Validación al menos 8 caracteres
-     if (formData.password.length < 8) {
+    if (formData.password.length < 8) {
       setError("La contraseña debe tener al menos 8 caracteres")
       setIsLoading(false)
       return
@@ -51,6 +51,14 @@ export default function RegisterPage() {
     // Validación al menos un número
     if (!/\d/.test(formData.password)) {
       setError("La contraseña debe incluir al menos un número")
+      setIsLoading(false)
+      return
+    }
+
+
+    // Validacion mayusculas
+    if (!/[A-Z]/.test(formData.password)) {
+      setError("La contraseña debe incluir al menos una letra mayúscula")
       setIsLoading(false)
       return
     }
@@ -66,7 +74,7 @@ export default function RegisterPage() {
       await registerUser(data)
       setSuccess(true)
       setTimeout(() => router.push("/auth/login"), 1500)
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrarse")
     } finally {
