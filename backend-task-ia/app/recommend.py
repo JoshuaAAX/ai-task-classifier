@@ -10,7 +10,13 @@ from app.utils import parse_recommendation_text
 load_dotenv()
 
 router = APIRouter(prefix="/recommend", tags=["Recomendaciones"])
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def get_openai_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Falta OPENAI_API_KEY en el entorno")
+    return OpenAI(api_key=api_key)
 
 SYSTEM_PROMPT_TEST = """Tu tarea es recomendar herramientas, papers o frameworks actuales y válidos para resolver una tarea previamente clasificada como una tarea que requiere IA.Herramientas recomendadas:
 [Nombre de la herramienta o paper] — breve descripción y propósito.
@@ -138,7 +144,7 @@ def recommend_tools(
 
     try:
         # ✅ Nueva forma con responses.create()
-        response = client.responses.create(
+        response = get_openai_client().responses.create(
             model="gpt-5-mini",
             input=[
                 {
