@@ -4,6 +4,7 @@ __pycache__/
 *.log
 .env
 .env.*
+!.env.example
 .vscode/
 .idea/
 .DS_Store
@@ -13,6 +14,8 @@ __pycache__/
 .venv/
 venv/
 pip-wheel-metadata/
+*.db
+*.sqlite3
 
 # ──────────────── NODE (Next.js) ────────────────
 node_modules/
