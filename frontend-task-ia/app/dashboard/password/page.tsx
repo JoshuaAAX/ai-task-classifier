@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
 import { changePassword } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
 
 export default function CambiarContrasenaPage() {
     const router = useRouter()
+    const { t } = useLanguage()
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState(false)
@@ -30,25 +32,25 @@ export default function CambiarContrasenaPage() {
 
         // Validación de contraseñas
         if (formData.newPassword !== formData.confirmPassword) {
-            setError("Las contraseñas nuevas no coinciden")
+            setError(t("passMismatch"))
             setIsLoading(false)
             return
         }
 
         if (formData.newPassword.length < 8) {
-            setError("La contraseña debe tener al menos 8 caracteres")
+            setError(t("passMin"))
             setIsLoading(false)
             return
         }
 
         if (!/\d/.test(formData.newPassword)) {
-            setError("La contraseña debe incluir al menos un número")
+            setError(t("passNumber"))
             setIsLoading(false)
             return
         }
 
         if (!/[A-Z]/.test(formData.newPassword)) {
-            setError("La contraseña debe incluir al menos una letra mayúscula")
+            setError(t("passUpper"))
             setIsLoading(false)
             return
         }
@@ -83,9 +85,9 @@ export default function CambiarContrasenaPage() {
                     <div>
                         <h1 className="font-bold text-lg leading-tight cursor-pointer"
                             onClick={() => router.push("/dashboard")}>
-                            Cambiar contraseña
+                            {t("changePasswordTitle")}
                         </h1>
-                        <p className="text-xs opacity-90 cursor-pointer">Actualiza tu contraseña de acceso</p>
+                        <p className="text-xs opacity-90 cursor-pointer">{t("changePasswordSubtitle")}</p>
                     </div>
                 </div>
             </header>
@@ -103,16 +105,16 @@ export default function CambiarContrasenaPage() {
                         {success && (
                             <Alert className="bg-success/10 text-success border-success/20">
                                 <CheckCircle2 className="h-4 w-4" />
-                                <AlertDescription>Contraseña actualizada exitosamente. Redirigiendo...</AlertDescription>
+                                <AlertDescription>{t("passwordUpdated")}</AlertDescription>
                             </Alert>
                         )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="currentPassword">Contraseña actual</Label>
+                            <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
                             <Input
                                 id="currentPassword"
                                 type="password"
-                                placeholder="Ingresa tu contraseña actual"
+                                placeholder={t("currentPasswordPlaceholder")}
                                 value={formData.currentPassword}
                                 onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                                 required
@@ -121,11 +123,11 @@ export default function CambiarContrasenaPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="newPassword">Nueva contraseña</Label>
+                            <Label htmlFor="newPassword">{t("newPassword")}</Label>
                             <Input
                                 id="newPassword"
                                 type="password"
-                                placeholder="Ingresa tu nueva contraseña"
+                                placeholder={t("newPasswordPlaceholder")}
                                 value={formData.newPassword}
                                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                                 required
@@ -134,11 +136,11 @@ export default function CambiarContrasenaPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+                            <Label htmlFor="confirmPassword">{t("confirmNewPassword")}</Label>
                             <Input
                                 id="confirmPassword"
                                 type="password"
-                                placeholder="Confirma tu nueva contraseña"
+                                placeholder={t("confirmNewPasswordPlaceholder")}
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                                 required
@@ -154,16 +156,16 @@ export default function CambiarContrasenaPage() {
                                 disabled={isLoading || success}
                                 className="flex-1"
                             >
-                                Cancelar
+                                {t("cancel")}
                             </Button>
                             <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90" disabled={isLoading || success}>
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Actualizando...
+                                        {t("updating")}
                                     </>
                                 ) : (
-                                    "Cambiar contraseña"
+                                    t("changePasswordBtn")
                                 )}
                             </Button>
                         </div>

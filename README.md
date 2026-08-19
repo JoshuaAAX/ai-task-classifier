@@ -14,6 +14,8 @@ Proyecto de tesis de la **Universidad del Valle** que clasifica automáticamente
 - 🧠 **Recomendación con GPT** — cuando la tarea requiere IA, un agente basado en OpenAI recomienda hasta 3 herramientas/papers con links verificados y ejemplo en Python.
 - 🔎 **Búsqueda en Hugging Face** — sugiere modelos relacionados con la tarea vía la API pública de Hugging Face.
 - 💬 **Interfaz tipo chat** — dashboard con conversación estilo chat y markdown renderizado.
+- 🌗 **Tema claro/oscuro** — selector de tema persistente (sistema, claro u oscuro).
+- 🌐 **Multilenguaje** — interfaz en español e inglés con detección automática del navegador.
 
 ## 🏗️ Arquitectura
 
@@ -177,15 +179,38 @@ Abrir <http://localhost:3000>
 │   │   ├── schemas.py       # Modelos Pydantic
 │   │   ├── database.py      # SQLAlchemy + SQLite
 │   │   └── utils.py         # bcrypt, JWT, parser de respuestas
+│   ├── tests/               # Pruebas unitarias (pytest)
 │   ├── requirements.txt
 │   └── .env.example
 └── frontend-task-ia/
     ├── app/                 # Páginas (landing, auth, dashboard)
-    ├── components/          # Componentes UI (shadcn/ui)
-    ├── lib/api.ts           # Cliente HTTP del backend
+    ├── components/          # Componentes UI (shadcn/ui, theme, i18n)
+    ├── lib/                 # api.ts + i18n.ts (diccionarios es/en)
     ├── middleware.ts        # Protección de rutas /dashboard
     └── package.json
 ```
+
+## 🧪 Pruebas
+
+### Backend (pytest)
+
+```bash
+cd backend-task-ia
+pip install -r requirements-dev.txt
+pytest
+```
+
+Cubre: parser de recomendaciones (`parse_recommendation_text`), normalización/búsqueda en Hugging Face y endpoints de la API (registro, login, predict, recommend) con base de datos en memoria.
+
+### Frontend (vitest)
+
+```bash
+cd frontend-task-ia
+npm install
+npm test
+```
+
+Cubre: diccionarios de traducción es/en, `LanguageProvider` (persistencia en localStorage) y `ThemeToggle` (cambio de tema claro/oscuro).
 
 ## 🛠️ Tecnologías
 

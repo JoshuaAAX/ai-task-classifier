@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Save, ArrowLeft } from "lucide-react"
 import { getCurrentUser, updateUser } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
 
 export default function PerfilPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
@@ -46,9 +48,9 @@ export default function PerfilPage() {
         username: formData.username,
       })
       setIsEditing(false)
-      console.log("Perfil actualizado correctamente")
+      console.log(t("profileUpdated"))
     } catch (error) {
-      console.log("Error al actualizar perfil")
+      console.log(t("errorUpdatingProfile"))
     }
   }
 
@@ -70,13 +72,13 @@ export default function PerfilPage() {
               className="font-bold text-lg leading-tight cursor-pointer"
               onClick={() => router.push("/dashboard")}
             >
-              Mi Perfil
+              {t("myProfile")}
             </h1>
             <p
               className="text-xs opacity-90 cursor-pointer"
               onClick={() => router.push("/dashboard")}
             >
-              Administra tu información personal
+              {t("profileSubtitle")}
             </p>
           </div>
         </div>
@@ -120,7 +122,7 @@ export default function PerfilPage() {
             {/* Form Fields */}
             <div className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="nombre">Nombre completo</Label>
+                <Label htmlFor="nombre">{t("fullName")}</Label>
                 {loading ? (
                   <Skeleton className="h-10 w-full" />
                 ) : (
@@ -137,7 +139,7 @@ export default function PerfilPage() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="username">Nombre de usuario</Label>
+                <Label htmlFor="username">{t("usernameLabel")}</Label>
                 {loading ? (
                   <Skeleton className="h-10 w-full" />
                 ) : (
@@ -155,7 +157,7 @@ export default function PerfilPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="email">{t("emailRealLabel")}</Label>
               {loading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -179,19 +181,19 @@ export default function PerfilPage() {
                     onClick={() => setIsEditing(true)}
                     className="bg-[#E30613] hover:bg-[#E30613]/90"
                   >
-                    Editar perfil
+                    {t("editProfile")}
                   </Button>
                 ) : (
                   <>
                     <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Cancelar
+                      {t("cancel")}
                     </Button>
                     <Button
                       onClick={handleSave}
                       className="bg-[#E30613] hover:bg-[#E30613]/90"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      Guardar cambios
+                      {t("saveChanges")}
                     </Button>
                   </>
                 )}

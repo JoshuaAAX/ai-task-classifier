@@ -7,16 +7,18 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, Bell, Palette, Shield, Database, UserCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import { getCurrentUser } from "@/lib/api"
 import { SettingsModalProps } from "@/types/user"
+import { useLanguage } from "@/components/language-provider"
 
 
 type SettingsSection = "general" | "account" | "security" | "data"
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [activeSection, setActiveSection] = useState<SettingsSection>("general")
-  const [theme, setTheme] = useState("system")
-  const [language, setLanguage] = useState("es")
+  const { theme, setTheme } = useTheme()
+  const { preference, setLanguage, t } = useLanguage()
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
@@ -45,10 +47,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   }, [open, router])
 
   const sections = [
-    { id: "general" as const, label: "General", icon: Settings },
-    { id: "account" as const, label: "Cuenta", icon: UserCircle },
-    { id: "security" as const, label: "Seguridad", icon: Shield },
-    { id: "data" as const, label: "Datos", icon: Database },
+    { id: "general" as const, label: t("general"), icon: Settings },
+    { id: "account" as const, label: t("account"), icon: UserCircle },
+    { id: "security" as const, label: t("security"), icon: Shield },
+    { id: "data" as const, label: t("data"), icon: Database },
   ]
 
   return (
@@ -57,7 +59,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         <div className="flex h-full">
           <div className="w-45 border-r border-border bg-muted/30 p-4">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-lg">Configuración</DialogTitle>
+              <DialogTitle className="text-lg">{t("settings")}</DialogTitle>
             </DialogHeader>
             <nav className="space-y-1">
               {sections.map((section) => {
@@ -84,22 +86,22 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             {activeSection === "general" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-6">General</h2>
+                  <h2 className="text-xl font-semibold text-foreground mb-6">{t("general")}</h2>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <Label htmlFor="theme" className="text-sm font-medium">
-                      Tema
+                      {t("theme")}
                     </Label>
-                    <Select value={theme} onValueChange={setTheme}>
+                    <Select value={theme} onValueChange={(v) => setTheme(v)}>
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="system">Sistema</SelectItem>
-                        <SelectItem value="light">Claro</SelectItem>
-                        <SelectItem value="dark">Oscuro</SelectItem>
+                        <SelectItem value="system">{t("system")}</SelectItem>
+                        <SelectItem value="light">{t("light")}</SelectItem>
+                        <SelectItem value="dark">{t("dark")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -107,16 +109,16 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <Label htmlFor="language" className="text-sm font-medium">
-                      Idioma
+                      {t("language")}
                     </Label>
-                    <Select value={language} onValueChange={setLanguage}>
+                    <Select value={preference} onValueChange={(v) => setLanguage(v as "es" | "en" | "auto")}>
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="auto">Auto-detectar</SelectItem>
+                        <SelectItem value="es">{t("spanish")}</SelectItem>
+                        <SelectItem value="en">{t("english")}</SelectItem>
+                        <SelectItem value="auto">{t("autoDetect")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -129,20 +131,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             {activeSection === "account" && (
               <div className="space-y-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Cuenta</h2>
-                  <p className="text-sm text-muted-foreground">Información de tu cuenta personal</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">{t("account")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("accountInfo")}</p>
                 </div>
 
                 {loading ? (
-                  <p className="text-sm text-muted-foreground">Cargando datos...</p>
+                  <p className="text-sm text-muted-foreground">{t("loadingData")}</p>
                 ) : (
                   <div className="space-y-4">
                     <div className="py-3 border-b border-border">
-                      <p className="text-sm font-medium">Nombre</p>
+                      <p className="text-sm font-medium">{t("name")}</p>
                       <p className="text-sm text-muted-foreground">{formData.name}</p>
                     </div>
                     <div className="py-3 border-b border-border">
-                      <p className="text-sm font-medium">Usuario</p>
+                      <p className="text-sm font-medium">{t("username")}</p>
                       <p className="text-sm text-muted-foreground">{formData.username}</p>
                     </div>
                     <div className="py-3 border-b border-border">
@@ -157,20 +159,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             {activeSection === "security" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Seguridad</h2>
-                  <p className="text-sm text-muted-foreground">Protege tu cuenta y datos personales.</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">{t("security")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("changePasswordSubtitle")}</p>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <div>
-                      <p className="text-sm font-medium">Cambiar contraseña</p>
-                      <p className="text-xs text-muted-foreground">Actualiza tu contraseña regularmente</p>
+                      <p className="text-sm font-medium">{t("changePassword")}</p>
+                      <p className="text-xs text-muted-foreground">{t("updatePasswordRegularly")}</p>
                     </div>
                     <Button onClick={() => router.push("/dashboard/password")}
 
                       size="sm"
                       className="bg-[#E30613] hover:bg-[#E30613]/90 text-white hover:text-white">
-                      Cambiar
+                      {t("change")}
                     </Button>
                   </div>
 
@@ -181,27 +183,27 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             {activeSection === "data" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Control de datos</h2>
-                  <p className="text-sm text-muted-foreground">Administra cómo se usan tus datos.</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">{t("dataControl")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("manageData")}</p>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <div>
-                      <p className="text-sm font-medium">Exportar datos</p>
-                      <p className="text-xs text-muted-foreground">Descarga una copia de tus datos</p>
+                      <p className="text-sm font-medium">{t("exportData")}</p>
+                      <p className="text-xs text-muted-foreground">{t("exportDataDesc")}</p>
                     </div>
                     <Button variant="outline" size="sm"
                       className="bg-[#E30613] hover:bg-[#E30613]/90 text-white hover:text-white">
-                      Exportar
+                      {t("export")}
                     </Button>
                   </div>
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <div>
-                      <p className="text-sm font-medium">Eliminar cuenta</p>
-                      <p className="text-xs text-muted-foreground">Elimina permanentemente tu cuenta</p>
+                      <p className="text-sm font-medium">{t("deleteAccount")}</p>
+                      <p className="text-xs text-muted-foreground">{t("deleteAccountDesc")}</p>
                     </div>
                     <Button variant="outline" size="sm" className="text-destructive bg-transparent">
-                      Eliminar
+                      {t("delete")}
                     </Button>
                   </div>
                 </div>

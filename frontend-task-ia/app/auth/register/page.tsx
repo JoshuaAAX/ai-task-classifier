@@ -13,10 +13,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { registerUser } from "@/lib/api"
 import type { RegisterData } from "@/types/user"
+import { useLanguage } from "@/components/language-provider"
 
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
@@ -36,21 +38,21 @@ export default function RegisterPage() {
 
     // Validacion si las contraseñas no coinciden
     if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+      setError(t("passMismatch"))
       setIsLoading(false)
       return
     }
 
     // Validación al menos 8 caracteres
     if (formData.password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres")
+      setError(t("passMin"))
       setIsLoading(false)
       return
     }
 
     // Validación al menos un número
     if (!/\d/.test(formData.password)) {
-      setError("La contraseña debe incluir al menos un número")
+      setError(t("passNumber"))
       setIsLoading(false)
       return
     }
@@ -58,7 +60,7 @@ export default function RegisterPage() {
 
     // Validacion mayusculas
     if (!/[A-Z]/.test(formData.password)) {
-      setError("La contraseña debe incluir al menos una letra mayúscula")
+      setError(t("passUpper"))
       setIsLoading(false)
       return
     }
@@ -83,7 +85,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F5F5F5] to-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="bg-[#E30613] text-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -92,8 +94,8 @@ export default function RegisterPage() {
               <span className="text-[#E30613] font-bold text-xl">UV</span>
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-tight">Universidad del Valle</h1>
-              <p className="text-xs opacity-90">IA Task Classifier</p>
+              <h1 className="font-bold text-lg leading-tight">{t("university")}</h1>
+              <p className="text-xs opacity-90">{t("appName")}</p>
             </div>
           </Link>
         </div>
@@ -108,8 +110,8 @@ export default function RegisterPage() {
                 <span className="text-white font-bold text-2xl">UV</span>
               </div>
             </div>
-            <CardTitle className="text-2xl text-[#2C2C2C]">Crear cuenta</CardTitle>
-            <CardDescription>Regístrate para acceder al clasificador de tareas IA</CardDescription>
+            <CardTitle className="text-2xl text-foreground">{t("registerTitle")}</CardTitle>
+            <CardDescription>{t("registerDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,16 +123,16 @@ export default function RegisterPage() {
 
               {success && (
                 <Alert className="bg-green-50 text-green-900 border-green-200">
-                  <AlertDescription>¡Registro exitoso! Redirigiendo al inicio de sesión...</AlertDescription>
+                  <AlertDescription>{t("registerSuccess")}</AlertDescription>
                 </Alert>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre completo</Label>
+                <Label htmlFor="name">{t("fullNameLabel")}</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Ingresa tu nombre completo"
+                  placeholder={t("namePlaceholder")}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -139,11 +141,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Correo electrónico</Label>
+                <Label htmlFor="email">{t("emailRealLabel")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="correo@ejemplo.com"
+                  placeholder={t("emailRealPlaceholder")}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -152,11 +154,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Nombre de usuario</Label>
+                <Label htmlFor="username">{t("usernameLabel")}</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Elige un nombre de usuario"
+                  placeholder={t("usernamePlaceholder")}
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
@@ -165,11 +167,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t("passwordNewLabel")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Crea una contraseña segura"
+                  placeholder={t("passwordNewPlaceholder")}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
@@ -178,11 +180,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPasswordLabel")}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirma tu contraseña"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   required
@@ -198,18 +200,18 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Registrando...
+                      {t("registering")}
                     </>
                   ) : (
-                    "Crear cuenta"
+                    t("createAccount")
                   )}
                 </Button>
               </div>
 
-              <div className="text-center text-sm text-[#2C2C2C]/60">
-                ¿Ya tienes cuenta?{" "}
+              <div className="text-center text-sm text-foreground/60">
+                {t("haveAccount")}{" "}
                 <Link href="/auth/login" className="text-[#E30613] hover:underline font-medium">
-                  Inicia sesión
+                  {t("loginHere")}
                 </Link>
               </div>
             </form>

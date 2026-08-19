@@ -12,6 +12,9 @@ import Cookies from "js-cookie"
 import { SettingsModal } from "@/components/settings-modal"
 import { getCurrentUser, analyzeTask, recommendTools } from "@/lib/api"
 import ReactMarkdown from "react-markdown"
+import { useLanguage } from "@/components/language-provider"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 
 import {
@@ -26,6 +29,7 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const [task, setTask] = useState("")
@@ -112,30 +116,30 @@ export default function DashboardPage() {
         console.log(rec)
 
         const formattedResponse = `
-###  Descripción de la tarea: ${rec.respuesta_formateada?.descripcion_tarea || "Sin descripción"}
+###  ${t("taskDescriptionTitle")}: ${rec.respuesta_formateada?.descripcion_tarea || "Sin descripción"}
 
-###  Herramientas recomendadas:
+###  ${t("recommendedToolsTitle")}:
 ${rec.respuesta_formateada?.herramientas_recomendadas
             ?.map(
               (h: any, i: number) => `
 ${i + 1}. **${h.nombre}**
-   -  Descripción: ${h.descripcion}
-   -  Enlace: [${h.link_verificado}](${h.link_verificado})
-   -  Motivo: ${h.motivo}`
+   -  ${t("toolDesc")}: ${h.descripcion}
+   -  ${t("toolLink")}: [${h.link_verificado}](${h.link_verificado})
+   -  ${t("toolReason")}: ${h.motivo}`
             )
-            .join("\n\n") || "No se encontraron herramientas."}
+            .join("\n\n") || t("noToolsFound")}
 
 ---
 
-###  Modelos sugeridos (Hugging Face):
+###  ${t("huggingFaceModelsTitle")}:
 ${rec.huggingface_sugeridos?.length
             ? rec.huggingface_sugeridos
               .map(
                 (m: any, i: number) =>
-                  `${i + 1}. [${m.name}](${m.url}) — ${m.description || "Sin descripción"}`
+                  `${i + 1}. [${m.name}](${m.url}) — ${m.description || t("loading")}`
               )
               .join("\n")
-            : "Ninguno encontrado."}
+            : t("noneFound")}
 `
 
         setMessages((prev) => [
@@ -147,7 +151,7 @@ ${rec.huggingface_sugeridos?.length
       console.error("Error analizando o recomendando:", error)
       setMessages((prev) => [
         ...prev,
-        { text: "Error al procesar la tarea o las recomendaciones.", from: "ai" },
+        { text: t("errorAnalyzing"), from: "ai" },
       ])
     } finally {
       setIsAnalyzing(false)
@@ -214,14 +218,17 @@ ${rec.huggingface_sugeridos?.length
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="hover:bg-muted flex-shrink-0"
           >
-            {sidebarOpen ? <PanelLeft className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+            <PanelLeft className="w-5 h-5" />
           </Button>
           {sidebarOpen && (
             <div className="flex items-center gap-2 flex-1 min-w-0">
-
-              <h2 className="font-bold text-sm text-foreground truncate">IA Task Classifier</h2>
+              <h2 className="font-bold text-sm text-foreground truncate">{t("appName")}</h2>
             </div>
           )}
+          <div className="flex items-center gap-1 ml-auto">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         {/* Conversations List */}
@@ -272,7 +279,7 @@ ${rec.huggingface_sugeridos?.length
                 </Avatar>
                 {sidebarOpen && (
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{userEmail || "Cargando..."}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{userEmail || t("loading")}</p>
                   </div>
                 )}
               </button>
@@ -280,16 +287,16 @@ ${rec.huggingface_sugeridos?.length
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="cursor-pointer">
                 <User className="w-4 h-4 mr-2" />
-                <span>Perfil</span>
+                <span>{t("profile")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="cursor-pointer">
                 <Settings className="w-4 h-4 mr-2" />
-                <span>Configuración</span>
+                <span>{t("settings")}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                 <LogOut className="w-4 h-4 mr-2" />
-                <span>Cerrar sesión</span>
+                <span>{t("logout")}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -307,7 +314,7 @@ ${rec.huggingface_sugeridos?.length
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-muted-foreground">Ingresa tu tarea para comenzar</p>
+                <p className="text-muted-foreground">{t("chatPrompt")}</p>
               </div>
             )}
 
@@ -335,7 +342,7 @@ ${rec.huggingface_sugeridos?.length
                 >
                   {msg.from === "ai" && msg.requiresAI !== undefined ? (
                     <p className="text-sm font-semibold">
-                      {msg.requiresAI ? "Requiere IA" : "No requiere IA"}
+                      {msg.requiresAI ? t("requiresAI") : t("noRequiresAI")}
                     </p>
                   ) : (
                     <div className="prose prose-sm max-w-none text-sm">
@@ -361,7 +368,7 @@ ${rec.huggingface_sugeridos?.length
           <div className="max-w-3xl mx-auto px-6 py-4">
             <div className="relative">
               <Textarea
-                placeholder="Ingresa tu tarea aquí..."
+                placeholder={t("enterTask")}
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
                 onKeyDown={handleKeyDown}

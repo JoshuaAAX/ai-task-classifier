@@ -1,6 +1,6 @@
 import bcrypt
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import re
 
@@ -20,7 +20,7 @@ def verify_password(plain_password, hashed_password):
     
 def create_access_token(data: dict, expires_delta: int = 60):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_delta)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -64,11 +64,11 @@ def parse_recommendation_text(text: str):
         for line in lines[1:]:
             line_lower = line.lower()
             if "descripción" in line_lower:
-                descripcion = re.split(r"(?i)descripción\s*[:\-–]", line, 1)[-1].strip()
+                descripcion = re.split(r"(?i)descripción\s*[:\-–]", line, maxsplit=1)[-1].strip()
             elif "link" in line_lower:
-                link = re.split(r"(?i)link\s*verificado\s*[:\-–]", line, 1)[-1].strip().strip("[]()")
+                link = re.split(r"(?i)link\s*verificado\s*[:\-–]", line, maxsplit=1)[-1].strip().strip("[]()")
             elif "motivo" in line_lower:
-                motivo = re.split(r"(?i)motivo\s*de\s*recomendación\s*[:\-–]", line, 1)[-1].strip()
+                motivo = re.split(r"(?i)motivo\s*de\s*recomendación\s*[:\-–]", line, maxsplit=1)[-1].strip()
 
         result["herramientas_recomendadas"].append({
             "nombre": nombre,

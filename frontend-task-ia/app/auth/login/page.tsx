@@ -13,10 +13,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import Cookies from "js-cookie"
 import { loginUser } from "@/lib/api"
+import { useLanguage } from "@/components/language-provider"
 
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
@@ -44,8 +46,8 @@ export default function LoginPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F5F5F5] to-white flex flex-col">
+return (
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="bg-[#E30613] text-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -54,8 +56,8 @@ export default function LoginPage() {
               <span className="text-[#E30613] font-bold text-xl">UV</span>
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-tight">Universidad del Valle</h1>
-              <p className="text-xs opacity-90">IA Task Classifier</p>
+              <h1 className="font-bold text-lg leading-tight">{t("university")}</h1>
+              <p className="text-xs opacity-90">{t("appName")}</p>
             </div>
           </Link>
         </div>
@@ -70,8 +72,8 @@ export default function LoginPage() {
                 <span className="text-white font-bold text-2xl">UV</span>
               </div>
             </div>
-            <CardTitle className="text-2xl text-[#2C2C2C]">Iniciar sesión</CardTitle>
-            <CardDescription>Ingresa tus credenciales para acceder al clasificador</CardDescription>
+            <CardTitle className="text-2xl text-foreground">{t("loginTitle")}</CardTitle>
+            <CardDescription>{t("loginDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,11 +84,11 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="username">Nombre de usuario</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <Input
                   id="email"
                   type="text"
-                  placeholder="Ingresa tu correo "
+                  placeholder={t("emailPlaceholder")}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
@@ -95,11 +97,11 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t("passwordLabel")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Ingresa tu contraseña"
+                  placeholder={t("passwordPlaceholder")}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
@@ -117,26 +119,18 @@ export default function LoginPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Iniciando sesión...
+                      {t("loggingIn")}
                     </>
                   ) : (
-                    "Entrar"
+                    t("enter")
                   )}
                 </Button>
               </div>
 
-              {/** 
-              <div className="text-center text-sm">
-                <Link href="#" className="text-[#E30613] hover:underline">
-                  ¿Olvidó su nombre de usuario o contraseña?
-                </Link>
-              </div>
-              */}
-
-              <div className="text-center text-sm text-[#2C2C2C]/60">
-                ¿No tienes cuenta?{" "}
+              <div className="text-center text-sm text-foreground/60">
+                {t("noAccount")}{" "}
                 <Link href="/auth/register" className="text-[#E30613] hover:underline font-medium">
-                  Regístrate
+                  {t("registerHere")}
                 </Link>
               </div>
             </form>
