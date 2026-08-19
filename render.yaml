@@ -21,3 +21,7 @@ services:
       # Opcional: restringir orígenes CORS (ej. https://tu-app.vercel.app)
       - key: ALLOWED_ORIGINS
         sync: false
+      # URL pública del frontend para el enlace de recuperación de contraseña.
+      # Ejemplo: https://tu-app.vercel.app (defínela en el dashboard de Render).
+      - key: APP_URL
+        sync: false
