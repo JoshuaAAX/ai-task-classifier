@@ -10,7 +10,7 @@ export const messages = {
     login: "Iniciar sesión",
     register: "Registrarse",
     startNow: "Comenzar ahora",
-    thesisBadge: "Proyecto de Tesis 2025",
+    thesisBadge: "Proyecto de Tesis 2026",
     heroSubtitle: "Descubre si una tarea realmente necesita inteligencia artificial",
     heroDesc:
       "Proyecto de tesis desarrollado para la Universidad del Valle. Esta herramienta analiza descripciones de tareas usando modelos de Machine Learning y predice si requiere IA.",
@@ -27,10 +27,10 @@ export const messages = {
     languagesTitle: "Lenguajes",
     frameworksTitle: "Frameworks",
     aboutTitle: "Sobre el proyecto",
-    aboutDesc1: "Proyecto académico de tesis de la Universidad del Valle (2025)",
+    aboutDesc1: "Proyecto académico de tesis de la Universidad del Valle (2026)",
     aboutDesc2:
       "Este proyecto forma parte de una investigación sobre la aplicación de técnicas de Machine Learning para la clasificación automática de tareas según si requiere implementación con inteligencia artificial.",
-    footerText: "© 2025 Universidad del Valle - IA Task Classifier",
+    footerText: "© 2026 Universidad del Valle - IA Task Classifier",
     loginTitle: "Iniciar sesión",
     loginDesc: "Ingresa tus credenciales para acceder al clasificador",
     emailLabel: "Nombre de usuario",
@@ -153,7 +153,7 @@ export const messages = {
     login: "Log in",
     register: "Sign up",
     startNow: "Start now",
-    thesisBadge: "Thesis Project 2025",
+    thesisBadge: "Thesis Project 2026",
     heroSubtitle: "Discover if a task really needs artificial intelligence",
     heroDesc:
       "Thesis project developed for the Universidad del Valle. This tool analyzes task descriptions using Machine Learning models and predicts whether it requires AI.",
@@ -170,10 +170,10 @@ export const messages = {
     languagesTitle: "Languages",
     frameworksTitle: "Frameworks",
     aboutTitle: "About the project",
-    aboutDesc1: "Academic thesis project of the Universidad del Valle (2025)",
+    aboutDesc1: "Academic thesis project of the Universidad del Valle (2026)",
     aboutDesc2:
       "This project is part of research on the application of Machine Learning techniques for the automatic classification of tasks according to whether they require implementation with artificial intelligence.",
-    footerText: "© 2025 Universidad del Valle - IA Task Classifier",
+    footerText: "© 2026 Universidad del Valle - IA Task Classifier",
     loginTitle: "Log in",
     loginDesc: "Enter your credentials to access the classifier",
     emailLabel: "Username",
