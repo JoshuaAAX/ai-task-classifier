@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app import auth, database
 from openai import OpenAI
 from dotenv import load_dotenv
-import os, requests
+import os, requests, re, unicodedata
 from app.utils import parse_recommendation_text
 
 load_dotenv()
@@ -107,32 +107,65 @@ HUGGINGFACE_SEARCH_URLS = {
     "spaces": "https://huggingface.co/api/spaces"
 }
 
-def search_huggingface(category: str, query: str, limit: int = 3):
-    url = f"{HUGGINGFACE_SEARCH_URLS[category]}?search={query}&limit={limit}"
+def _normalize_query(text: str) -> str:
+    """Quita tildes/acentos para mejorar la búsqueda en Hugging Face."""
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c)).strip()
+
+def _hf_search(url: str, limit: int = 3):
     try:
         response = requests.get(url, timeout=10)
         if response.status_code != 200:
             return []
         data = response.json()
+        if not isinstance(data, list):
+            return []
         results = []
         for item in data:
             name = item.get("id", "Sin nombre")
             desc = item.get("cardData", {}).get("description", "Sin descripción")
-            if category == "papers":
-                item_url = f"https://huggingface.co/papers/{name}"
-            else:
-                item_url = f"https://huggingface.co/{name}"
-            results.append({"name": name, "description": desc, "url": item_url})
+            results.append({"name": name, "description": desc})
         return results
     except Exception:
         return []
+
+def search_huggingface(category: str, query: str, limit: int = 3):
+    base = HUGGINGFACE_SEARCH_URLS.get(category)
+    if not base:
+        return []
+    query = _normalize_query(query)
+    candidates = [query] if query else []
+    if " " in query:
+        stopwords = {
+            "de", "la", "el", "los", "las", "un", "una", "unos", "unas",
+            "del", "al", "con", "para", "por", "y", "o", "en", "es", "a", "que",
+        }
+        candidates += [w for w in query.split() if w.lower() not in stopwords][:3]
+
+    seen = set()
+    results = []
+    for q in candidates:
+        url = f"{base}?search={q}&limit={limit}"
+        for item in _hf_search(url, limit):
+            if item["name"] not in seen:
+                seen.add(item["name"])
+                results.append(item)
+        if len(results) >= limit:
+            break
+
+    for r in results[:limit]:
+        if category == "papers":
+            r["url"] = f"https://huggingface.co/papers/{r['name']}"
+        else:
+            r["url"] = f"https://huggingface.co/{r['name']}"
+    return results[:limit]
 
 
 
 
 # --- NUEVA RUTA PRINCIPAL DE RECOMENDACIÓN ---
 
-@router.post("/")
+@router.post("")
 def recommend_tools(
     data: RecommendRequest,
     db: Session = Depends(database.get_db),

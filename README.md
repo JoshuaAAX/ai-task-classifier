@@ -136,27 +136,32 @@ Abrir <http://localhost:3000>
 
 ### Backend → Render
 
+> Despliegue actual: **https://ai-task-classifier-backend.onrender.com**
+
 1. Sube el repo a GitHub.
-2. En [Render](https://render.com) → **New → Web Service**, conecta el repo.
+2. En [Render](https://render.com) → **New → Web Service** (o **Blueprint** con `render.yaml`), conecta el repo.
 3. Configura:
    - **Root Directory:** `backend-task-ia`
    - **Build Command:** `pip install -r requirements.txt`
    - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-   - **Environment Variables:** `JWT_SECRET`, `JWT_ALGORITHM=HS256`, `OPENAI_API_KEY` (opcional).
-4. Render creará una URL tipo `https://tu-backend.onrender.com`.
+   - **Environment Variables:** `JWT_SECRET`, `JWT_ALGORITHM=HS256`, `OPENAI_API_KEY` (necesaria para `/recommend`).
+4. ⚠️ **Paso obligatorio para que las recomendaciones funcionen:** en el dashboard de Render (Service → **Environment**) agrega `OPENAI_API_KEY` con tu clave de OpenAI y haz **Deploy**.
 
 > ℹ️ Los archivos `.pkl` del modelo ya están en el repo, así que no necesitas build extra.
 
 ### Frontend → Vercel
 
-1. En [Vercel](https://vercel.com) → **Add New Project**, importa el repo.
+> ⚠️ El proyecto actual de Vercel `ai-task-classifier` sirve otra app. Para desplegar ESTE frontend:
+
+1. En [Vercel](https://vercel.com) → **Add New Project** (o **Import** el repo `JoshuaAAX/ai-task-classifier`).
 2. Configura:
    - **Root Directory:** `frontend-task-ia`
    - **Framework Preset:** Next.js
-   - **Environment Variables:** `NEXT_PUBLIC_API_URL=https://tu-backend.onrender.com`
+   - **Build Command:** `npm run build`
+   - **Environment Variables:** `NEXT_PUBLIC_API_URL=https://ai-task-classifier-backend.onrender.com`
 3. Deploy.
 
-> ⚠️ En `backend-task-ia/app/main.py` ajusta `allow_origins` en el CORS a tu dominio de Vercel en lugar de `"*"`.
+> ⚠️ Si mantienes el CORS en `*` no necesitas cambios. Si quieres restringirlo, en Render define `ALLOWED_ORIGINS=https://tu-dominio.vercel.app`.
 
 ## 📁 Estructura del proyecto
 

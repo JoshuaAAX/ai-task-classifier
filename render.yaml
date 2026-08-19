@@ -14,5 +14,10 @@ services:
         value: HS256
       - key: DATABASE_URL
         value: sqlite:///./app.db
+      # IMPORTANTE: define OPENAI_API_KEY en el dashboard de Render
+      # (Service -> Environment) para que /recommend funcione.
       - key: OPENAI_API_KEY
+        sync: false
+      # Opcional: restringir orígenes CORS (ej. https://tu-app.vercel.app)
+      - key: ALLOWED_ORIGINS
         sync: false
