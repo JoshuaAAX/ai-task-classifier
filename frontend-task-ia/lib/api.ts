@@ -117,6 +117,42 @@ export async function changePassword(old_password: string, new_password: string)
   return json
 }
 
+
+// solicitar enlace de recuperación de contraseña
+export async function forgotPassword(email: string): Promise<{
+  msg: string
+  reset_link?: string
+  dev_mode?: boolean
+}> {
+  const res = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  })
+
+  const json = await res.json()
+  if (!res.ok) {
+    throw new Error(json.detail || json.message || "Error al solicitar el enlace")
+  }
+  return json
+}
+
+
+// restablecer contraseña con el token recibido
+export async function resetPassword(token: string, new_password: string): Promise<{ msg: string }> {
+  const res = await fetch(`${API_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, new_password }),
+  })
+
+  const json = await res.json()
+  if (!res.ok) {
+    throw new Error(json.detail || json.message || "Error al restablecer la contraseña")
+  }
+  return json
+}
+
 // enviar la tarea para predecir con ia
 export async function analyzeTask(task: string): Promise<AnalyzeResult> {
   const token = getToken()

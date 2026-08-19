@@ -1,8 +1,10 @@
 import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta, timezone
+import hashlib
 import os
 import re
+import secrets
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
@@ -23,6 +25,50 @@ def create_access_token(data: dict, expires_delta: int = 60):
     expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def send_reset_email(to_email: str, reset_link: str) -> bool:
+    """Envía el correo de recuperación si SMTP está configurado. Devuelve False si no."""
+    import smtplib
+    from email.mime.text import MIMEText
+
+    host = os.getenv("SMTP_HOST")
+    if not host:
+        return False
+
+    port = int(os.getenv("SMTP_PORT", "587"))
+    user = os.getenv("SMTP_USER", "")
+    password = os.getenv("SMTP_PASSWORD", "")
+    sender = os.getenv("SMTP_FROM", user or "no-reply@localhost")
+
+    body = (
+        "Hola,\n\n"
+        "Recibimos una solicitud para restablecer tu contraseña.\n"
+        "Abre el siguiente enlace para continuar (válido por 30 minutos):\n"
+        f"{reset_link}\n\n"
+        "Si no solicitaste este cambio, ignora este correo.\n\n"
+        "- IA Task Classifier"
+    )
+
+    msg = MIMEText(body, "plain")
+    msg["From"] = sender
+    msg["To"] = to_email
+    msg["Subject"] = "Recuperación de contraseña - IA Task Classifier"
+
+    with smtplib.SMTP(host, port, timeout=30) as server:
+        server.starttls()
+        if user:
+            server.login(user, password)
+        server.sendmail(sender, to_email, msg.as_string())
+    return True
 
 
 """

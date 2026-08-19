@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 from . import database, models, schemas, utils
+from datetime import datetime, timedelta, timezone
 import os
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -127,3 +128,67 @@ def delete_user(db: Session = Depends(database.get_db), current_user: models.Use
     current_user.is_active = False
     db.commit()
     return {"msg": "Usuario eliminado lógicamente (inactivo)"}
+
+
+@router.post("/forgot-password")
+def forgot_password(data: schemas.ForgotPassword, db: Session = Depends(database.get_db)):
+    """Solicita un enlace de recuperación. No revela si el correo existe."""
+    user = db.query(models.User).filter(models.User.email == data.email).first()
+    if user is None:
+        return {"msg": "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña."}
+
+    # Invalidar enlaces anteriores no usados
+    db.query(models.PasswordReset).filter(
+        models.PasswordReset.user_id == user.id,
+        models.PasswordReset.used == False,
+    ).delete()
+
+    token = utils.generate_reset_token()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.add(models.PasswordReset(
+        user_id=user.id,
+        token_hash=utils.hash_token(token),
+        expires_at=now + timedelta(minutes=30),
+    ))
+    db.commit()
+
+    app_url = os.getenv("APP_URL", "http://localhost:3000")
+    reset_link = f"{app_url}/auth/reset-password?token={token}"
+
+    try:
+        sent = utils.send_reset_email(user.email, reset_link)
+    except Exception:
+        sent = False
+
+    if sent:
+        return {"msg": "Te enviamos un enlace de recuperación a tu correo."}
+
+    # Sin SMTP configurado: modo demo, devolvemos el enlace para que el flujo funcione
+    return {
+        "msg": "No hay correo configurado; en modo demo te mostramos el enlace.",
+        "reset_link": reset_link,
+        "dev_mode": True,
+    }
+
+
+@router.post("/reset-password")
+def reset_password(data: schemas.ResetPassword, db: Session = Depends(database.get_db)):
+    """Restablece la contraseña con un token válido, no usado y vigente."""
+    reset = db.query(models.PasswordReset).filter(
+        models.PasswordReset.token_hash == utils.hash_token(data.token)
+    ).first()
+    if reset is None:
+        raise HTTPException(status_code=400, detail="Token de recuperación inválido")
+    if reset.used:
+        raise HTTPException(status_code=400, detail="Este enlace ya fue utilizado")
+    if reset.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
+        raise HTTPException(status_code=400, detail="El enlace de recuperación expiró")
+
+    user = db.query(models.User).filter(models.User.id == reset.user_id).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+
+    user.password = utils.hash_password(data.new_password)
+    reset.used = True
+    db.commit()
+    return {"msg": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."}

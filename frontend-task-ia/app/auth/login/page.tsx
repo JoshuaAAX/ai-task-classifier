@@ -128,6 +128,12 @@ return (
               </div>
 
               <div className="text-center text-sm text-foreground/60">
+                <Link href="/auth/forgot-password" className="hover:underline font-medium text-foreground/60">
+                  {t("forgotPassword")}
+                </Link>
+              </div>
+
+              <div className="text-center text-sm text-foreground/60">
                 {t("noAccount")}{" "}
                 <Link href="/auth/register" className="text-[#E30613] hover:underline font-medium">
                   {t("registerHere")}
