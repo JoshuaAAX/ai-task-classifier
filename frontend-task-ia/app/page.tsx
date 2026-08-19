@@ -45,7 +45,6 @@ export default function LandingPage() {
                 {t("register")}
               </Button>
             </Link>
-            <ThemeToggle />
             <LanguageSwitcher />
           </nav>
         </div>
@@ -125,8 +124,7 @@ export default function LandingPage() {
               <CardContent className="pt-6">
                 <h3 className="font-semibold mb-3 text-foreground">{t("modelsTitle")}</h3>
                 <ul className="space-y-2 text-sm text-foreground/70">
-                  <li>• BERT</li>
-                  <li>• Random Forest</li>
+
                   <li>• SVM</li>
                 </ul>
               </CardContent>
